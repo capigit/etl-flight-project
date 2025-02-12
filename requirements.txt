@@ -1,5 +1,4 @@
 requests
 pandas
-sqlite3
 gspread
 oauth2client
