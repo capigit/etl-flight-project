@@ -1,0 +1,23 @@
+name: ETL Pipeline Automatique
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Exécution toutes les heures
+
+jobs:
+  run_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le repo
+        uses: actions/checkout@v3
+
+      - name: Installer Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Exécuter le pipeline ETL
+        run: python etl_flights.py
