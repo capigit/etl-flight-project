@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import sqlite3
 import time
+import gspread
 from datetime import datetime
 
 # 🟢 EXTRACTION : Récupérer les données de vol
@@ -29,12 +30,33 @@ def load_to_sqlite(df, db_name="flights.db"):
     conn.close()
     print("✅ Données chargées dans SQLite")
 
+# 📤 EXPORTATION : Envoyer les données vers Google Sheets
+def export_to_google_sheets(df):
+    try:
+        gc = gspread.service_account()  # Pas besoin de fichier JSON ici !
+        sheet = gc.open_by_key("157Hy-Mytfy_hFuwX9iPdpkSkZ2kh1eqh9NbCLKJuKDo").sheet1
+        sheet.clear()  # Efface les anciennes données
+        sheet.update([df.columns.values.tolist()] + df.values.tolist())  # Mise à jour
+        print("✅ Données mises à jour sur Google Sheets")
+    except Exception as e:
+        print(f"❌ Erreur d'exportation vers Google Sheets : {e}")
+
 # 🚀 PIPELINE AUTOMATIQUE (Exécution continue toutes les heures)
 if __name__ == "__main__":
     while True:
         print("🔄 Exécution du pipeline ETL...")
+        
+        # 1️⃣ Extraction
         df = extract_flight_data()
+        
+        # 2️⃣ Transformation
         df_clean = transform_flight_data(df)
+        
+        # 3️⃣ Chargement en base SQLite
         load_to_sqlite(df_clean)
+        
+        # 4️⃣ Export vers Google Sheets
+        export_to_google_sheets(df_clean)
+
         print("✅ Pipeline exécuté avec succès ! Attente 1 heure...")
         time.sleep(3600)  # Exécuter toutes les heures
