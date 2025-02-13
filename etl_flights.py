@@ -10,11 +10,22 @@ def extract_flight_data():
     url = "https://opensky-network.org/api/states/all"
     response = requests.get(url)
     data = response.json()
-    
-    columns = ["icao24", "callsign", "origin_country", "time_position", "last_contact", 
-               "longitude", "latitude", "baro_altitude", "on_ground", "velocity"]
-    flights = pd.DataFrame(data["states"], columns=columns)
-    return flights
+
+    # Vérifie si "states" contient des données
+    if "states" in data and data["states"]:
+        flights = pd.DataFrame(data["states"])  # Charge toutes les colonnes dynamiquement
+
+        # Nommer les colonnes correctement (d'après la doc OpenSky)
+        flights.columns = [
+            "icao24", "callsign", "origin_country", "time_position", "last_contact",
+            "longitude", "latitude", "baro_altitude", "on_ground", "velocity",
+            "true_track", "vertical_rate", "sensors", "geo_altitude", "squawk",
+            "spi", "position_source"
+        ]
+        return flights
+    else:
+        print("⚠️ Aucune donnée récupérée depuis l'API OpenSky")
+        return pd.DataFrame()  # Retourne un DataFrame vide si l'API ne renvoie rien
 
 # 🔧 TRANSFORMATION : Nettoyer et formater les données
 def transform_flight_data(df):
