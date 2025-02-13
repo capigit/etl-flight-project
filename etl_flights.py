@@ -44,13 +44,17 @@ def load_to_sqlite(df, db_name="flights.db"):
 # 📤 EXPORTATION : Envoyer les données vers Google Sheets
 def export_to_google_sheets(df):
     try:
-        gc = gspread.service_account()  # Pas besoin de fichier JSON ici !
-        sheet = gc.open_by_key("157Hy-Mytfy_hFuwX9iPdpkSkZ2kh1eqh9NbCLKJuKDo").sheet1
+        # Connexion anonyme à Google Sheets (sans authentification JSON)
+        gc = gspread.service_account()  # 🔴 Problème ici si pas de fichier JSON
+        sheet = gc.open_by_key("157Hy-Mytfy_hFuwX9iPdpkSkZ2kh1eqh9NbCLKJuKDo").sheet1  # Ouvre le bon fichier
+
         sheet.clear()  # Efface les anciennes données
         sheet.update([df.columns.values.tolist()] + df.values.tolist())  # Mise à jour
+
         print("✅ Données mises à jour sur Google Sheets")
     except Exception as e:
         print(f"❌ Erreur d'exportation vers Google Sheets : {e}")
+
 
 # 🚀 PIPELINE AUTOMATIQUE (Exécution continue toutes les heures)
 if __name__ == "__main__":
