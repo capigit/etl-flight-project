@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import time
 import gspread
+from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # 🟢 EXTRACTION : Récupérer les données de vol
@@ -40,21 +41,32 @@ def load_to_sqlite(df, db_name="flights.db"):
     df.to_sql("flights", conn, if_exists="replace", index=False)
     conn.close()
     print("✅ Données chargées dans SQLite")
+    
 
 # 📤 EXPORTATION : Envoyer les données vers Google Sheets
 def export_to_google_sheets(df):
     try:
-        # Connexion anonyme à Google Sheets (sans authentification JSON)
-        gc = gspread.service_account()  # 🔴 Problème ici si pas de fichier JSON
-        sheet = gc.open_by_key("157Hy-Mytfy_hFuwX9iPdpkSkZ2kh1eqh9NbCLKJuKDo").sheet1  # Ouvre le bon fichier
+        # 🔹 URL de soumission du formulaire (remplace par la tienne)
+        google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSeLHPzL4U5fdEU_tHkmqwxpTxdb82MauFSXYGhUKkNcysMcwQ/formResponse"
 
-        sheet.clear()  # Efface les anciennes données
-        sheet.update([df.columns.values.tolist()] + df.values.tolist())  # Mise à jour
+        # 🔹 Transformer le DataFrame en un texte lisible pour Google Forms
+        data_text = df.to_string(index=False)  # ✅ Format lisible sans sauts de ligne CSV
 
-        print("✅ Données mises à jour sur Google Sheets")
+        # 🔹 Remplace ENTRY_ID par l'ID du champ dans Google Forms
+        form_data = {
+            "entry.XXXXXXXXX": data_text  # ⚠️ Remplace "XXXXXXXXX" par l'ID exact du champ "Données"
+        }
+
+        # 🔹 Envoyer la requête POST
+        response = requests.post(google_form_url, data=form_data)
+
+        if response.status_code == 200:
+            print("✅ Données envoyées avec succès via Google Form !")
+        else:
+            print(f"❌ Erreur lors de l'envoi au Google Form : {response.status_code} - {response.text}")
+
     except Exception as e:
-        print(f"❌ Erreur d'exportation vers Google Sheets : {e}")
-
+        print(f"❌ Erreur d'exportation vers Google Form : {e}")
 
 # 🚀 PIPELINE AUTOMATIQUE (Exécution continue toutes les heures)
 if __name__ == "__main__":
