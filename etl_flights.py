@@ -52,9 +52,8 @@ def export_to_google_sheets(df):
         # 🔹 Transformer le DataFrame en un texte lisible pour Google Forms
         data_text = df.to_string(index=False)  # ✅ Format lisible sans sauts de ligne CSV
 
-        # 🔹 Remplace ENTRY_ID par l'ID du champ dans Google Forms
         form_data = {
-            "entry.XXXXXXXXX": data_text  # ⚠️ Remplace "XXXXXXXXX" par l'ID exact du champ "Données"
+            "entry.12557336789": data_text
         }
 
         # 🔹 Envoyer la requête POST
