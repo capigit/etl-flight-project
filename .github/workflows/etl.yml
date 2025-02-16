@@ -21,3 +21,6 @@ jobs:
 
       - name: Exécuter le pipeline ETL
         run: python etl_flights.py
+
+env:
+  ACTIONS_RUNNER_DEBUG: true

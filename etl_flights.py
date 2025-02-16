@@ -63,7 +63,6 @@ def load_to_sqlite(df, db_name="flights.db"):
     conn.close()
     print("✅ Données chargées dans SQLite")
 
-# 📤 EXPORTATION : Envoyer une seule ligne vers Google Forms
 def export_to_google_sheets(df):
     try:
         if df.empty:
@@ -76,11 +75,14 @@ def export_to_google_sheets(df):
         # 🔹 ID du champ "Données" trouvé dans DevTools
         form_entry_id = "entry.1319407633"  # ⚠️ Remplace par l'ID réel du champ
 
-        # 🔹 Prendre uniquement la première ligne du DataFrame et la convertir en texte
-        first_row = df.iloc[0].to_string(index=False)
+        # 🔹 Prendre uniquement la première ligne du DataFrame et la convertir en texte lisible
+        first_row = df.iloc[0].to_dict()  # Convertir en dictionnaire
+
+        # 🔹 Transformer en une seule ligne formatée
+        formatted_data = ", ".join([f"{key}: {value}" for key, value in first_row.items()])
 
         # 🔹 Envoyer sous forme de dictionnaire
-        form_data = { form_entry_id: first_row }
+        form_data = { form_entry_id: formatted_data }
 
         # 🔹 Envoyer la requête POST
         response = requests.post(google_form_url, data=form_data)
