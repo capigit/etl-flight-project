@@ -1,5 +1,8 @@
 name: ETL Pipeline Automatique
 
+env:
+  ACTIONS_RUNNER_DEBUG: true
+  
 on:
   schedule:
     - cron: "0 * * * *"  # Exécution toutes les heures
@@ -21,6 +24,3 @@ jobs:
 
       - name: Exécuter le pipeline ETL
         run: python etl_flights.py
-
-env:
-  ACTIONS_RUNNER_DEBUG: true
