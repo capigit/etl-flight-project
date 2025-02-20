@@ -5,7 +5,7 @@ env:
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Exécution toutes les heures
+    - cron: "0 0 * * *"  # Exécution toutes les heures
 
 jobs:
   run_pipeline:
