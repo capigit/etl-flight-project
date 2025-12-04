@@ -6,6 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
+
 # 🟢 EXTRACTION : Récupérer les données de vol
 def extract_flight_data():
     url = "https://opensky-network.org/api/states/all"
@@ -14,19 +15,35 @@ def extract_flight_data():
 
     # Vérifier si "states" contient des données
     if "states" in data and data["states"]:
-        flights = pd.DataFrame(data["states"])  # Charge toutes les colonnes dynamiquement
+        flights = pd.DataFrame(
+            data["states"]
+        )  # Charge toutes les colonnes dynamiquement
 
         # Nommer les colonnes correctement (d'après la doc OpenSky)
         flights.columns = [
-            "icao24", "callsign", "origin_country", "time_position", "last_contact",
-            "longitude", "latitude", "baro_altitude", "on_ground", "velocity",
-            "true_track", "vertical_rate", "sensors", "geo_altitude", "squawk",
-            "spi", "position_source"
+            "icao24",
+            "callsign",
+            "origin_country",
+            "time_position",
+            "last_contact",
+            "longitude",
+            "latitude",
+            "baro_altitude",
+            "on_ground",
+            "velocity",
+            "true_track",
+            "vertical_rate",
+            "sensors",
+            "geo_altitude",
+            "squawk",
+            "spi",
+            "position_source",
         ]
         return flights
     else:
         print("⚠️ Aucune donnée récupérée depuis l'API OpenSky")
         return pd.DataFrame()  # Retourne un DataFrame vide si l'API ne renvoie rien
+
 
 # 🔧 TRANSFORMATION : Nettoyer et formater les données
 def transform_flight_data(df):
@@ -34,40 +51,42 @@ def transform_flight_data(df):
         return df  # Retourner directement si df est vide
 
     # 🔹 Supprimer uniquement les lignes totalement vides
-    df = df.dropna(how='all')
+    df = df.dropna(how="all")
 
     # 🔹 Vérifier si les colonnes critiques contiennent des valeurs
-    if 'baro_altitude' in df.columns and df['baro_altitude'].isnull().all():
+    if "baro_altitude" in df.columns and df["baro_altitude"].isnull().all():
         print("⚠️ Toutes les valeurs de 'baro_altitude' sont manquantes !")
         return pd.DataFrame()  # Retourner un DataFrame vide pour éviter des erreurs
 
     # 🔹 Convertir les timestamps UNIX en format lisible
-    if 'time_position' in df.columns:
-        df['time_position'] = df['time_position'].apply(
+    if "time_position" in df.columns:
+        df["time_position"] = df["time_position"].apply(
             lambda x: datetime.utcfromtimestamp(x) if pd.notnull(x) and x > 0 else None
         )
 
     # 🔹 Ajouter une colonne altitude en pieds
-    df["altitude_feet"] = df["baro_altitude"].fillna(0) * 3.281  
+    df["altitude_feet"] = df["baro_altitude"].fillna(0) * 3.281
 
     return df
+
 
 # 💾 CHARGEMENT : Stocker dans SQLite
 def load_to_sqlite(df, db_name="flights.db"):
     if df.empty:
         print("⚠️ Aucune donnée à charger dans SQLite.")
-        return  
+        return
 
     conn = sqlite3.connect(db_name)
     df.to_sql("flights", conn, if_exists="replace", index=False)
     conn.close()
     print("✅ Données chargées dans SQLite")
 
+
 def export_to_google_sheets(df):
     try:
         if df.empty:
             print("⚠️ Aucune donnée à envoyer (DataFrame vide).")
-            return  
+            return
 
         # 🔹 URL de soumission du formulaire
         google_form_url = "https://docs.google.com/forms/d/e/1FAIpQLSeLHPzL4U5fdEU_tHkmqwxpTxdb82MauFSXYGhUKkNcysMcwQ/formResponse"
@@ -79,10 +98,12 @@ def export_to_google_sheets(df):
         first_row = df.iloc[0].to_dict()  # Convertir en dictionnaire
 
         # 🔹 Transformer en une seule ligne formatée
-        formatted_data = ", ".join([f"{key}: {value}" for key, value in first_row.items()])
+        formatted_data = ", ".join(
+            [f"{key}: {value}" for key, value in first_row.items()]
+        )
 
         # 🔹 Envoyer sous forme de dictionnaire
-        form_data = { form_entry_id: formatted_data }
+        form_data = {form_entry_id: formatted_data}
 
         # 🔹 Envoyer la requête POST
         response = requests.post(google_form_url, data=form_data)
@@ -90,10 +111,13 @@ def export_to_google_sheets(df):
         if response.status_code == 200:
             print("✅ Données envoyées avec succès via Google Form !")
         else:
-            print(f"❌ Erreur lors de l'envoi au Google Form : {response.status_code} - {response.text}")
+            print(
+                f"❌ Erreur lors de l'envoi au Google Form : {response.status_code} - {response.text}"
+            )
 
     except Exception as e:
         print(f"❌ Erreur d'exportation vers Google Form : {e}")
+
 
 # 🚀 PIPELINE AUTOMATIQUE (Exécution continue toutes les heures)
 if __name__ == "__main__":
@@ -105,9 +129,11 @@ if __name__ == "__main__":
 
         # Vérifier si l'extraction a bien fonctionné
         if df.empty:
-            print("⚠️ Aucune donnée récupérée depuis l'API OpenSky. Attente avant la prochaine exécution...")
+            print(
+                "⚠️ Aucune donnée récupérée depuis l'API OpenSky. Attente avant la prochaine exécution..."
+            )
             time.sleep(3600)
-            continue  
+            continue
 
         # 🔹 Afficher les 5 premières lignes avant transformation
         print("📊 Données brutes extraites :")
@@ -122,9 +148,11 @@ if __name__ == "__main__":
 
         # Vérifier si les données transformées sont vides
         if df_clean.empty:
-            print("⚠️ Les données transformées sont vides. Vérifiez la logique de transformation.")
+            print(
+                "⚠️ Les données transformées sont vides. Vérifiez la logique de transformation."
+            )
             time.sleep(3600)
-            continue  
+            continue
 
         # 3️⃣ Chargement en base SQLite
         load_to_sqlite(df_clean)
