@@ -1,0 +1,7 @@
+opensky:
+  url: "https://opensky-network.org/api/states/all"
+
+tableau:
+  site: ""
+  project: "OpenSky Project"
+  datasource_name: "OpenSky Live Flights"
