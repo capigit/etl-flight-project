@@ -1,6 +1,5 @@
 venv/
 .env
 csv_history/
-script_test/
 __pycache__/
 *.hyper

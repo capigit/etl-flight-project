@@ -1,6 +1,13 @@
 import pandas as pd
 
 def transform_basic(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transformation de base :
+    - Copie du DataFrame
+    - Suppression des lignes sans latitude/longitude
+    - Nettoyage du callsign
+    - Création de velocity_kmh et is_flying
+    """
     df = df.copy()
 
     # Nettoyage minimal
